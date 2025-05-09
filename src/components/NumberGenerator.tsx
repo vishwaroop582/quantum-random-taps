@@ -5,8 +5,10 @@ import RangeSelector from './RangeSelector';
 import NumberDisplay from './NumberDisplay';
 import HistoryLog from './HistoryLog';
 import AboutQuantum from './AboutQuantum';
+import MultipleNumbersDisplay from './MultipleNumbersDisplay';
 import { generateQuantumRandomNumbers, checkQuantumApiAvailability } from '@/services/quantumService';
 import { useToast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface HistoryItem {
   id: string;
@@ -19,10 +21,13 @@ interface HistoryItem {
 const NumberGenerator: React.FC = () => {
   const [minValue, setMinValue] = useState<number>(1);
   const [maxValue, setMaxValue] = useState<number>(100);
+  const [quantity, setQuantity] = useState<number>(1);
   const [currentNumber, setCurrentNumber] = useState<number | null>(null);
+  const [currentNumbers, setCurrentNumbers] = useState<number[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isQuantumAvailable, setIsQuantumAvailable] = useState<boolean | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("single");
   const { toast } = useToast();
 
   // Check quantum API availability on component mount
@@ -47,23 +52,27 @@ const NumberGenerator: React.FC = () => {
   const handleGenerate = async () => {
     setIsLoading(true);
     setCurrentNumber(null);
+    setCurrentNumbers(null);
     
     try {
-      const numbers = await generateQuantumRandomNumbers(minValue, maxValue, 1);
-      const generatedNumber = numbers[0];
+      const numbers = await generateQuantumRandomNumbers(minValue, maxValue, quantity);
       
-      setCurrentNumber(generatedNumber);
-      
-      // Add to history
-      const newHistoryItem: HistoryItem = {
-        id: Date.now().toString(),
-        number: generatedNumber,
-        min: minValue,
-        max: maxValue,
-        timestamp: new Date(),
-      };
-      
-      setHistory(prev => [newHistoryItem, ...prev].slice(0, 20)); // Keep last 20 items
+      if (activeTab === "single") {
+        setCurrentNumber(numbers[0]);
+        
+        // Add to history
+        const newHistoryItem: HistoryItem = {
+          id: Date.now().toString(),
+          number: numbers[0],
+          min: minValue,
+          max: maxValue,
+          timestamp: new Date(),
+        };
+        
+        setHistory(prev => [newHistoryItem, ...prev].slice(0, 20)); // Keep last 20 items
+      } else {
+        setCurrentNumbers(numbers);
+      }
     } catch (error) {
       console.error('Error generating number:', error);
       toast({
@@ -80,6 +89,12 @@ const NumberGenerator: React.FC = () => {
     setHistory([]);
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setCurrentNumber(null);
+    setCurrentNumbers(null);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -87,8 +102,10 @@ const NumberGenerator: React.FC = () => {
           <RangeSelector
             minValue={minValue}
             maxValue={maxValue}
+            quantity={quantity}
             onMinChange={setMinValue}
             onMaxChange={setMaxValue}
+            onQuantityChange={setQuantity}
           />
           <div className="flex flex-col items-center">
             <Button 
@@ -101,7 +118,7 @@ const NumberGenerator: React.FC = () => {
               <div className="quantum-particle" style={{ left: '60%', top: '60%', animationDelay: '0.7s' }}></div>
               <div className="quantum-particle" style={{ left: '80%', top: '20%', animationDelay: '1.3s' }}></div>
               
-              {isLoading ? 'Generating...' : 'Generate Quantum Random Number'}
+              {isLoading ? 'Generating...' : `Generate ${quantity > 1 && activeTab === "multiple" ? quantity : ''} Quantum Random ${quantity > 1 && activeTab === "multiple" ? 'Numbers' : 'Number'}`}
             </Button>
             
             {isQuantumAvailable === false && (
@@ -110,7 +127,19 @@ const NumberGenerator: React.FC = () => {
               </div>
             )}
           </div>
-          <NumberDisplay number={currentNumber} isLoading={isLoading} />
+          
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="single">Single Number</TabsTrigger>
+              <TabsTrigger value="multiple">Multiple Numbers</TabsTrigger>
+            </TabsList>
+            <TabsContent value="single">
+              <NumberDisplay number={currentNumber} isLoading={isLoading} />
+            </TabsContent>
+            <TabsContent value="multiple">
+              <MultipleNumbersDisplay numbers={currentNumbers} isLoading={isLoading} />
+            </TabsContent>
+          </Tabs>
         </div>
         
         <div className="space-y-6">

@@ -14,15 +14,19 @@ import { Label } from '@/components/ui/label';
 interface RangeSelectorProps {
   minValue: number;
   maxValue: number;
+  quantity: number;
   onMinChange: (value: number) => void;
   onMaxChange: (value: number) => void;
+  onQuantityChange: (value: number) => void;
 }
 
 const RangeSelector: React.FC<RangeSelectorProps> = ({
   minValue,
   maxValue,
+  quantity,
   onMinChange,
   onMaxChange,
+  onQuantityChange,
 }) => {
   // Handle direct input changes
   const handleMinInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,6 +43,13 @@ const RangeSelector: React.FC<RangeSelectorProps> = ({
     }
   };
 
+  const handleQuantityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseInt(e.target.value) || 1;
+    if (newValue >= 1 && newValue <= 100) {
+      onQuantityChange(newValue);
+    }
+  };
+
   // Handle slider changes
   const handleMinSliderChange = (values: number[]) => {
     const newValue = values[0];
@@ -51,6 +62,13 @@ const RangeSelector: React.FC<RangeSelectorProps> = ({
     const newValue = values[0];
     if (newValue > minValue) {
       onMaxChange(newValue);
+    }
+  };
+
+  const handleQuantitySliderChange = (values: number[]) => {
+    const newValue = values[0];
+    if (newValue >= 1 && newValue <= 100) {
+      onQuantityChange(newValue);
     }
   };
 
@@ -100,6 +118,27 @@ const RangeSelector: React.FC<RangeSelectorProps> = ({
               max={999999}
               step={1}
               onValueChange={handleMaxSliderChange}
+              className="w-full"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label htmlFor="quantity">Number of Random Numbers</Label>
+              <Input
+                id="quantity"
+                type="number"
+                value={quantity}
+                onChange={handleQuantityInputChange}
+                className="w-24 text-right"
+              />
+            </div>
+            <Slider
+              value={[quantity]}
+              min={1}
+              max={100}
+              step={1}
+              onValueChange={handleQuantitySliderChange}
               className="w-full"
             />
           </div>
