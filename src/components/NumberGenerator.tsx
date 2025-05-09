@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface HistoryItem {
   id: string;
-  number: number;
+  number?: number;
+  numbers?: number[];
   min: number;
   max: number;
   timestamp: Date;
@@ -72,6 +73,17 @@ const NumberGenerator: React.FC = () => {
         setHistory(prev => [newHistoryItem, ...prev].slice(0, 20)); // Keep last 20 items
       } else {
         setCurrentNumbers(numbers);
+        
+        // Add to history for multiple numbers
+        const newHistoryItem: HistoryItem = {
+          id: Date.now().toString(),
+          numbers: numbers,
+          min: minValue,
+          max: maxValue,
+          timestamp: new Date(),
+        };
+        
+        setHistory(prev => [newHistoryItem, ...prev].slice(0, 20)); // Keep last 20 items
       }
     } catch (error) {
       console.error('Error generating number:', error);

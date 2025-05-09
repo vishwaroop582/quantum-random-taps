@@ -3,11 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { List } from 'lucide-react';
 
 interface HistoryLogProps {
   history: Array<{
     id: string;
-    number: number;
+    number?: number;
+    numbers?: number[];
     min: number;
     max: number;
     timestamp: Date;
@@ -47,9 +49,21 @@ const HistoryLog: React.FC<HistoryLogProps> = ({ history, onClearHistory }) => {
                   className="p-2 rounded-md border flex items-center justify-between bg-background/50"
                 >
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-primary/10">
-                      {item.number}
-                    </Badge>
+                    {item.number !== undefined ? (
+                      <Badge variant="outline" className="bg-primary/10">
+                        {item.number}
+                      </Badge>
+                    ) : item.numbers && item.numbers.length > 0 ? (
+                      <div className="flex items-center gap-1">
+                        <Badge variant="outline" className="bg-primary/10 flex items-center gap-1">
+                          <List className="h-3 w-3" /> 
+                          {item.numbers.length}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                          [{item.numbers.slice(0, 3).join(', ')}{item.numbers.length > 3 ? '...' : ''}]
+                        </span>
+                      </div>
+                    ) : null}
                     <span className="text-xs text-muted-foreground">
                       Range: {item.min}-{item.max}
                     </span>
